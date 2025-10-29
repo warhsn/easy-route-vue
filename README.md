@@ -8,6 +8,7 @@ A middleware routing system for Vue Router 4 (Vue 3) inspired by Laravel routing
 
 - 🛡️ Middleware-based route protection
 - 🎯 Route grouping with shared prefixes and guards
+- 📄 Automatic page title management
 - 📦 TypeScript support with full type definitions
 - ⚡ Built with Vite for modern development
 - 🔄 Vue 3 and Vue Router 4 compatible
@@ -35,7 +36,8 @@ const app = createApp(App)
 
 app.use(EasyRoute, {
   router,
-  guards: [] // Optional: will be discussed below
+  guards: [], // Optional: will be discussed below
+  baseTitle: 'My App' // Optional: base title for all pages
 })
 
 app.use(router)
@@ -56,7 +58,8 @@ const guards: Guard[] = [] // Your guards here
 
 app.use(EasyRoute, {
   router,
-  guards
+  guards,
+  baseTitle: 'My App' // Optional: base title for all pages
 })
 
 app.use(router)
@@ -85,6 +88,7 @@ Route('/path', 'route-name', VueComponent, ['stacked', 'middlewares'])
 | name          | string        |   ''     |
 | component     | Vue Component | required |
 | middleware    | Array         | []       |
+| title         | string        | undefined|
 
 ## RouteGroup
 
@@ -125,6 +129,7 @@ RouteGroup({
 | middleware    | Array         | []       |
 | routes        | Array         | required |
 | parent        | Route         | null     |
+| title         | String        | undefined|
 
 
 ## RouteGroup with children
@@ -160,6 +165,79 @@ RouteGroup({
 })
 
 ```
+
+## Page Titles
+
+Easy Route automatically manages page titles for your routes. Titles are updated automatically when navigating between routes.
+
+### Setting a Base Title
+
+Configure a base title when installing the plugin. This will be prepended to all page titles:
+
+```javascript
+app.use(EasyRoute, {
+  router,
+  guards: [],
+  baseTitle: 'My App'
+})
+```
+
+### Title Priority System
+
+Easy Route determines page titles using the following priority:
+
+1. **Individual Route Title** (highest priority) - Explicitly set via the `title` parameter
+2. **Route Name** - Automatically formatted from the route name (e.g., 'user-profile' becomes 'User Profile')
+3. **Base Title Only** - Falls back to just the base title if no page-specific title exists
+
+### Setting Titles on Individual Routes
+
+```javascript
+// With explicit title
+Route('/dashboard', 'dashboard', Dashboard, ['auth'], 'Dashboard Overview')
+// Results in: "My App | Dashboard Overview"
+
+// Without title - uses formatted route name
+Route('/user-profile', 'user-profile', UserProfile, ['auth'])
+// Results in: "My App | User Profile"
+
+// Without baseTitle configured
+Route('/about', 'about', About, [], 'About Us')
+// Results in: "About Us"
+```
+
+### Setting Titles on Route Groups
+
+You can set a shared title for all routes in a group. Individual route titles will override the group title:
+
+```javascript
+RouteGroup({
+  prefix: '/admin',
+  middleware: ['auth', 'admin'],
+  title: 'Admin Panel',
+  routes: [
+    Route('/users', 'users', UserIndex),
+    // Results in: "My App | Admin Panel"
+
+    Route('/settings', 'settings', Settings, [], 'Custom Settings')
+    // Results in: "My App | Custom Settings" (individual title takes priority)
+  ]
+})
+```
+
+### Title Format
+
+When both `baseTitle` and a page title exist, they are combined with a pipe separator:
+
+```
+baseTitle | Page Title
+```
+
+Examples:
+- Base title + explicit title: `"My App | Dashboard Overview"`
+- Base title + formatted route name: `"My App | User Profile"`
+- Only explicit title: `"Dashboard Overview"`
+- Only base title: `"My App"`
 
 ## Guards
 
@@ -243,7 +321,8 @@ const app = createApp(App)
 
 app.use(EasyRoute, {
   router,
-  guards: [auth, guest]
+  guards: [auth, guest],
+  baseTitle: 'My App'
 })
 
 app.use(router)
@@ -267,7 +346,8 @@ const guards: Guard[] = [auth, guest]
 
 app.use(EasyRoute, {
   router,
-  guards
+  guards,
+  baseTitle: 'My App'
 })
 
 app.use(router)
@@ -329,7 +409,8 @@ const app = createApp(App)
 
 app.use(EasyRoute, {
   router,
-  guards: [auth, guest]
+  guards: [auth, guest],
+  baseTitle: 'My App'
 })
 
 app.use(router)
@@ -394,7 +475,8 @@ const guards: Guard[] = [auth, guest]
 
 app.use(EasyRoute, {
   router,
-  guards
+  guards,
+  baseTitle: 'My App'
 })
 
 app.use(router)

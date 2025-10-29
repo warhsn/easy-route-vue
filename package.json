@@ -1,6 +1,6 @@
 {
   "name": "@warhsn/easy-route-vue",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A middleware routing system for Vue Router inspired by Laravel routing",
   "type": "module",
   "main": "./dist/easy-route.umd.cjs",

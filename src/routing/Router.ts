@@ -7,6 +7,7 @@ export interface RouteConfig {
   component: RouteComponent
   meta: {
     middleware: string[]
+    title?: string
   }
   children?: RouteConfig[]
 }
@@ -16,18 +17,20 @@ export interface RouteGroupConfig {
   middleware?: string[]
   parent?: RouteConfig | null
   prefix?: string
+  title?: string
 }
 
 export const Route = (
   path: string = '',
   name: string = '',
   component: RouteComponent,
-  middleware: string[] = []
+  middleware: string[] = [],
+  title?: string
 ): RouteConfig => ({
   path,
   name,
   component,
-  meta: { middleware },
+  meta: { middleware, title },
   children: []
 })
 
@@ -35,10 +38,12 @@ class RouterGroup {
   private prefix: string = ''
   private middleware: string[]
   private routes: RouteConfig[]
+  private groupTitle?: string
 
   constructor(config: RouteGroupConfig) {
     this.setPrefix(config.prefix)
     this.middleware = config.middleware || []
+    this.groupTitle = config.title
     this.routes = config.routes
     this.hasRoutes()
     this.processRoutes(config)
@@ -65,6 +70,10 @@ class RouterGroup {
     return routes.map(route => {
       route.path = this.prefix + route.path
       route.meta.middleware = union(this.middleware, route.meta.middleware)
+      // Only apply group title if route doesn't have its own title (individual titles take priority)
+      if (!route.meta.title && this.groupTitle) {
+        route.meta.title = this.groupTitle
+      }
       return route
     })
   }
